@@ -1,0 +1,297 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Tests | MED24</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .navbar {
+            background-color: #512DA8;
+            color: #fff;
+            padding: 10px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .navbar .med24 {
+            font-size: 24px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #FFC107;
+        }
+
+        .content {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 1200px;
+            margin-top: 20px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .content h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+        }
+
+        .lab-tests {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .test {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .test h2 {
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+
+        .test h2 a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .test h2 a:hover {
+            text-decoration: underline;
+        }
+
+        .test p {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+        .add-to-cart-btn {
+    background-color: #00897B;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.add-to-cart-btn:hover {
+    background-color: #00695C;
+}
+.pincode-form {
+            text-align: top;
+        }
+
+        .pincode-form input[type="text"] {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            width: 200px;
+            margin-right: 10px;
+        }
+
+        .pincode-form button {
+            padding: 10px 20px;
+            background-color: #00796b;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+.schedule-test-btn {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #00897B;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.3s ease;
+}
+
+.schedule-test-btn:hover {
+    background-color: #00695C;
+}
+
+
+    </style>
+</head>
+<body>
+    <div class="navbar">
+        <span class="med24">MED24</span>
+    </div>
+    <div class="content">
+        <h1>Lab Tests</h1>
+        <div class="lab-tests">
+            <div class="pincode-form">
+                <form method="POST" action="{{ url_for('tests_by_pincode') }}">
+                    <label for="pincode">Enter Pincode:</label>
+                    <input type="text" id="pincode" name="pincode" required>
+                    <button type="submit">Check Availability</button>
+                </form>
+            </div>
+            <div class="test">
+                <h2><a href="/basic_health_screening">Basic Health Screening</a></h2>
+                <p>$100 onwards</p>
+            </div>
+            
+            <div class="test">
+                <h2><a href="/cardiovascular_health">Cardiovascular Health</a></h2>
+                <p>$150 onwards</p>
+            </div>
+            
+            <div class="test">
+                <h2><a href="/diabetes_management">Diabetes Management</a></h2>
+                <p>$60 onwards</p>
+            </div>
+                <div class="test">
+                    <h2><a href="/thyroid_function">Thyroid Function</a></h2>
+                    <p>$80 onwards</p>
+                </div>
+                
+                <div class="test">
+                    <h2><a href="/liver_function">Liver Function</a></h2>
+                    <p>$60 onwards</p>
+                </div>
+                
+                <div class="test">
+                    <h2><a href="/kidney_function">Kidney Function</a></h2>
+                    <p>$65 onwards</p>
+                </div>
+                    
+                <div class="test">
+                        <h2><a href="/infection_and_inflammation">Infection and Inflammation</a></h2>
+                        <p>$50 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/nutritional_and_vitamin_levels">Nutritional and Vitamin Levels</a></h2>
+                        <p>$90 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/hormonal_panels">Hormonal Panels</a></h2>
+                        <p>$110 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/reproductive_health">Reproductive Health</a></h2>
+                        <p>$120 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/autoimmune_disorders">Autoimmune Disorders</a></h2>
+                        <p>$130 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/allergy_testing">Allergy Testing</a></h2>
+                        <p>$70 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/cancer_markers">Cancer Markers</a></h2>
+                        <p>$200 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/genetic_testing">Genetic Testing</a></h2>
+                        <p>$250 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/infectious_diseases">Infectious Diseases</a></h2>
+                        <p>$140 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/urine_tests">Urine Tests</a></h2>
+                        <p>$30 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/bone_health">Bone Health</a></h2>
+                        <p>80 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/electrolyte_and_fluid_balance">Electrolyte and Fluid Balance</a></h2>
+                        <p>$55 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/gastrointestinal_health">Gastrointestinal Health</a></h2>
+                        <p>$90 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/toxicology_and_drug_testing">Toxicology and Drug Testing</a></h2>
+                        <p>$100 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/immunologyand_serology">Immunology and Serology</a></h2>
+                        <p>$110 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/endocrine_system">Endocrine System</a></h2>
+                        <p>$120 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/rheumatology">Rheumatology</a></h2>
+                        <p>$130 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/dermatology">Dermatology</a></h2>
+                        <p>$70 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/ophthalmology">Ophthalmology</a></h2>
+                        <p>$90 onwards</p>
+                    </div>
+                    
+                    <div class="test">
+                        <h2><a href="/neurology">Neurology</a></h2>
+                        <p>$150 onwards</p>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <script>
+        function openSchedulePage() {
+            window.open('/lab_tests', '_blank');
+        }
+    </script>
+    <button class="schedule-test-btn" onclick="openSchedulePage()">Schedule Test</button>
+
+</body>
+</html>
