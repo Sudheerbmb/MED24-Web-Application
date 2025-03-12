@@ -3,32 +3,18 @@ from flask_mysqldb import MySQL
 import MySQLdb.cursors
 import re
 import google.generativeai as genai
-# from google.generativeai import get_chat_response
 
-# from flask_mail import Mail, Message
 import markdown
 from langchain_groq import ChatGroq
-
+import os
 
 
 from flask import current_app
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
-# from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_mysqldb import MySQL
 
 
 app = Flask(__name__)
-
-app.config['MAIL_SERVER'] = 'smtp.outlook.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USERNAME'] = 'sudheerdata@outlook.com'
-app.config['MAIL_PASSWORD'] = 'Sudheer@123'
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-# mail = Mail(app)
-
-
-
 
 from sklearn.linear_model import LinearRegression
 import pandas as pd
@@ -48,44 +34,6 @@ model1.fit(X, y)
 
 
 
-API_KEY = 'AIzaSyCnHiPnc81WluNjSklL6lLR5FO_NbHRCfM'
-#'AIzaSyCCrYnLhDIgToWeG4u_nPpQcB9uNJMze0U'
-genai.configure(api_key=API_KEY)
-
-model = genai.GenerativeModel('gemini-pro')
-chat = model.start_chat(history=[])
-instruction = "In this chat, respond to medical-related queries only. If the query is not medical-related, please respond with a polite message stating that I can only answer medical questions."
-
-medical_keywords = [
-    'doctor', 'medicine', 'health', 'symptom', 'treatment', 'diagnosis', 
-    'therapy', 'medical', 'hospital', 'clinic', 'pharmacy', 'nurse', 
-    'emergency', 'surgery', 'physician', 'prescription', 'patient', 
-    'healthcare', 'pediatrician', 'dermatologist', 'gynecologist', 
-    'cardiologist', 'neurologist', 'oncologist', 'radiologist', 
-    'psychiatrist', 'ophthalmologist', 'orthopedic', 'dietitian', 
-    'allergist', 'chiropractor', 'podiatrist', 'medication', 'delivery', 
-    'order', 'track', 'shipment', 'customer service', 'pharmacy network', 
-    'health advice', 'emergency assistance', 'drug recall', 'side effects', 
-    'health tips', 'medication reminder', 'privacy', 'compliance', 'regulation', 
-    'data privacy', 'healthcare provider', 'first aid', 'health guide', 
-    'medicine availability', 'online pharmacy', 'prescription refill', 
-    'pharmacy support', 'medication information', 'drug interaction', 
-    'drug safety', 'medical emergency', 'pharmacy services', 'drug delivery', 
-    'medical delivery', 'patient support', 'order status', 'payment options', 
-    'drug compatibility', 'pharmaceutical care', 'patient care', 'medicine use', 
-    'healthcare advice', 'prescription advice', 'medication order', 'prescription order', 
-    'medication guidance', 'pharmacy assistance', 'healthcare support',
-    'consultation', 'doctor consultation', 'medical advice', 'health consultation', 
-    'telemedicine', 'virtual consultation', 'medical specialist', 'doctor appointment', 
-    'online doctor', 'specialist consultation', 'second opinion', 'health specialist', 
-    'medical consultation', 'physician consultation', 'GP consultation', 'doctor visit', 
-    'health check', 'medical opinion', 'medical referral', 'remote consultation',
-    'lab test', 'blood test', 'urine test', 'diagnostic test', 'pathology', 
-    'laboratory', 'lab technician', 'test result', 'lab procedure', 
-    'medical test', 'clinical test', 'biopsy', 'culture test', 'genetic test', 
-    'microbiology test', 'serology test', 'immunology test', 'radiology test', 
-    'PCR test', 'MRI scan', 'CT scan', 'X-ray', 'ultrasound'
-]
 
 
 
@@ -93,18 +41,45 @@ medical_keywords = [
 
 
 
-app.secret_key = 'your_secret_key'
 
-app.config['MYSQL_HOST'] = 'localhost'
-app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = 'Sudheer@123'
-app.config['MYSQL_DB'] = 'medicaldelivery103'
-app.config['SECRET_KEY'] = 'supersecretkey123'  # Replace with your secret key
-app.config['JWT_SECRET_KEY'] = 'superjwtsecretkey456'
+# app.secret_key = 'your_secret_key'
+
+# app.config['MYSQL_HOST'] = 'localhost'
+# app.config['MYSQL_USER'] = 'root'
+# app.config['MYSQL_PASSWORD'] = 'Sudheer@123'
+# app.config['MYSQL_DB'] = 'medicaldelivery103'
+# app.config['SECRET_KEY'] = 'supersecretkey123'  # Replace with your secret key
+# app.config['JWT_SECRET_KEY'] = 'superjwtsecretkey456'
+
+
+
+
 
 mysql = MySQL(app)
-# jwt = JWTManager(app)
 
+
+# @app.route('/')
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     msg = ''
+#     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
+#         username = request.form['username']
+#         password = request.form['password']
+#         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+#         cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
+#         account = cursor.fetchone()
+#         if account:
+#             session['loggedin'] = True
+#             session['id'] = account['id']
+#             session['username'] = account['username']
+#             session['mail']=account['email']
+#             if username == 'admin':
+#                 return redirect(url_for('admin_home'))
+#             else:
+#                 return redirect(url_for('index'))
+#         else:
+#             msg = 'Incorrect username/password!'
+#     return render_template('login.html', msg=msg)
 
 @app.route('/')
 @app.route('/login', methods=['GET', 'POST'])
@@ -113,67 +88,32 @@ def login():
     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
         username = request.form['username']
         password = request.form['password']
+
+        # Special condition for sudheer
+        if username == 'sudheer' and password == '123':
+            session['loggedin'] = True
+            session['username'] = username
+            return redirect(url_for('index'))
+
+        # Database validation for other users
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
         cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
         account = cursor.fetchone()
+        
         if account:
             session['loggedin'] = True
             session['id'] = account['id']
             session['username'] = account['username']
-            session['mail']=account['email']
+            session['mail'] = account['email']
             if username == 'admin':
                 return redirect(url_for('admin_home'))
             else:
                 return redirect(url_for('index'))
         else:
             msg = 'Incorrect username/password!'
+    
     return render_template('login.html', msg=msg)
 
-
-# @app.route('/')
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     msg = ''
-#     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
-#         username = request.form['username']
-#         password = request.form['password']
-#         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-#         cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
-#         account = cursor.fetchone()
-#         if account:
-#             session['loggedin'] = True
-#             session['id'] = account['id']
-#             session['username'] = account['username']
-#             session['mail'] = account['email']
-#             if username == 'admin':
-#                 return render_template('admin1.html')
-#             else:
-#                 return redirect(url_for('index'))
-#         else:
-#             msg = 'Incorrect username/password!'
-#     return render_template('login.html', msg=msg)
-
-
-# @app.route('/')
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     msg = ''
-#     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
-#         username = request.form['username']
-#         password = request.form['password']
-#         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-#         cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
-#         account = cursor.fetchone()
-#         if account:
-#             session['loggedin'] = True
-#             session['id'] = account['id']
-#             session['username'] = account['username']
-#             session['email'] = account['email']
-#             access_token = create_access_token(identity={'username': account['username'], 'email': account['email']})
-#             return jsonify(access_token=access_token), 200
-#         else:
-#             msg = 'Incorrect username/password!'
-#     return render_template('login.html', msg=msg)
 
 
 
@@ -219,14 +159,6 @@ def index():
     if 'loggedin' in session:
         return render_template('index.html')
     return redirect(url_for('login'))
-# @app.route('/index')
-# @jwt_required()
-# def index():
-#     current_user = get_jwt_identity()
-#     if 'loggedin' in session:
-#         return render_template('index.html', user=current_user['username'])
-#     return redirect(url_for('login'))
-
 
 
 
@@ -376,59 +308,7 @@ def order_tracking():
 
 
 
-# @app.route('/sendemail', methods=['GET', 'POST'])
-# def sendemail():
-#     if request.method == 'POST':
-#         email = request.form['email']
-#         message_body = request.form['message']
-#         message = Message('Mail from Medical Delivery System', sender='MED24', recipients=[email])
-#         message.body = message_body
-#         mail.send(message)
-#         return 'Mail sent successfully!'
-#     return render_template('sendemail.html')
 
-
-
-
-
-# @app.route('/checkout', methods=['POST'])
-# def checkout():
-#     if 'loggedin' in session:
-#         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-#         cursor.execute("""
-#             SELECT medicines.name, cart.quantity, medicines.price,medicines.id 
-#             FROM cart 
-#             JOIN medicines ON cart.medicine_id = medicines.id 
-#             WHERE cart.user_id = %s
-#         """, (session['id'],))
-#         cart_items = cursor.fetchall()
-        
-#         email = session.get('email')
-#         if not email:
-#             cursor.execute('SELECT email FROM users WHERE id = %s', (session['id'],))
-#             user = cursor.fetchone()
-#             email = user['email']
-
-#         message_body = 'Thank you for your order. Here are the details:\n\n'
-#         for item in cart_items:
-#             message_body += f"{item['name']} - Quantity: {item['quantity']} - Price: ₹{item['price'] * item['quantity']}\n"
-#             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-#             cursor.execute('''
-#             INSERT INTO orders (user_id, medicine_id,quantity) 
-#             values (%s,%s,%s)''',(session['id'],item['id'],item['quantity'],))
-
-        
-#         message = Message('Order Confirmation', sender='sudheerdata@outlook.com', recipients=[email])
-#         message.body = message_body
-#         mail.send(message)
-
-        
-        
-#         cursor.execute('DELETE FROM cart WHERE user_id = %s', (session['id'],))
-#         mysql.connection.commit()
-        
-#         return redirect(url_for('index'))
-#     return redirect(url_for('login'))
 @app.route('/checkout', methods=['POST'])
 def checkout():
     if 'loggedin' in session:
@@ -982,24 +862,24 @@ def past_lab_bookings():
 
 
 
-@app.route('/chat')
-def home():
-    return render_template('chat.html')
+# @app.route('/chat')
+# def home():
+#     return render_template('chat.html')
 
-@app.route('/ask', methods=['POST'])
-def ask():
-    user_message = str(request.form['messageText'])
+# @app.route('/ask', methods=['POST'])
+# def ask():
+#     user_message = str(request.form['messageText'])
     
-    if not is_medical_query(user_message):
-        bot_response_text = "I'm sorry, I can only answer medical-related questions. Please ask a question related to medical topics."
-    else:
-        bot_response = chat.send_message(user_message)
-        bot_response_text = bot_response.text
+#     if not is_medical_query(user_message):
+#         bot_response_text = "I'm sorry, I can only answer medical-related questions. Please ask a question related to medical topics."
+#     else:
+#         bot_response = chat.send_message(user_message)
+#         bot_response_text = bot_response.text
     
-    return jsonify({'status': 'OK', 'answer': bot_response_text})
+#     return jsonify({'status': 'OK', 'answer': bot_response_text})
 
-def is_medical_query(query):
-    return any(keyword in query.lower() for keyword in medical_keywords)
+# def is_medical_query(query):
+#     return any(keyword in query.lower() for keyword in medical_keywords)
 
 
 
@@ -1085,5 +965,236 @@ def recommend_medicines():
         return render_template('recommendations.html', medicines=similar_medicines)
     
     return redirect(url_for('login'))
+
+# # Function to check if the query is medical-related
+# def is_medical_query(query):
+#     medical_keywords = [
+#         'doctor', 'medicine', 'health', 'symptom', 'treatment', 'diagnosis', 
+#         'therapy', 'medical', 'hospital', 'clinic', 'pharmacy', 'nurse', 
+#         'emergency', 'surgery', 'physician', 'prescription', 'patient', 
+#         'healthcare', 'pediatrician', 'dermatologist', 'gynecologist', 
+#         'cardiologist', 'neurologist', 'oncologist', 'radiologist', 
+#         'psychiatrist', 'ophthalmologist', 'orthopedic', 'dietitian', 
+#         'allergist', 'chiropractor', 'podiatrist', 'medication', 'delivery', 
+#         'order', 'track', 'shipment', 'customer service', 'pharmacy network', 
+#         'health advice', 'emergency assistance', 'drug recall', 'side effects', 
+#         'health tips', 'medication reminder', 'privacy', 'compliance', 'regulation', 
+#         'data privacy', 'healthcare provider', 'first aid', 'health guide', 
+#         'medicine availability', 'online pharmacy', 'prescription refill', 
+#         'pharmacy support', 'medication information', 'drug interaction', 
+#         'drug safety', 'medical emergency', 'pharmacy services', 'drug delivery', 
+#         'medical delivery', 'patient support', 'order status', 'payment options', 
+#         'drug compatibility', 'pharmaceutical care', 'patient care', 'medicine use', 
+#         'healthcare advice', 'prescription advice', 'medication order', 'prescription order', 
+#         'medication guidance', 'pharmacy assistance', 'healthcare support',
+#         'consultation', 'doctor consultation', 'medical advice', 'health consultation', 
+#         'telemedicine', 'virtual consultation', 'medical specialist', 'doctor appointment', 
+#         'online doctor', 'specialist consultation', 'second opinion', 'health specialist', 
+#         'medical consultation', 'physician consultation', 'GP consultation', 'doctor visit', 
+#         'health check', 'medical opinion', 'medical referral', 'remote consultation',
+#         'lab test', 'blood test', 'urine test', 'diagnostic test', 'pathology', 
+#         'laboratory', 'lab technician', 'test result', 'lab procedure', 
+#         'medical test', 'clinical test', 'biopsy', 'culture test', 'genetic test', 
+#         'microbiology test', 'serology test', 'immunology test', 'radiology test', 
+#         'PCR test', 'MRI scan', 'CT scan', 'X-ray', 'ultrasound'
+#     ]
+#     return any(keyword in query.lower() for keyword in medical_keywords)
+
+# @app.route('/chat')
+# def home():
+#     return render_template('chat.html')
+
+# @app.route('/ask', methods=['POST'])
+# def ask():
+#     user_message = str(request.form['messageText'])
+
+#     # Check if it's a medical query
+#     if not is_medical_query(user_message):
+#         bot_response_text = "I'm sorry, I can only answer medical-related questions. Please ask a question related to medical topics."
+#     else:
+#         # Initialize the Groq API client
+#         llm = ChatGroq(api_key=groq_api_key, model=model_name)
+
+#         # Construct the prompt for the Groq API
+#         prompt = f"""
+#         Respond to the following medical query: {user_message}. Please provide concise yet efficient output.Dont give in markdown format.
+#         """
+
+#         # Send the query to the Groq API
+#         response = llm.invoke(prompt)
+
+#         # Get the response from the Groq API
+#         if response:
+#             bot_response_text = response.content
+#         else:
+#             bot_response_text = "Sorry, I couldn't find a relevant response at this moment."
+
+
+
+# Function to check if the query is medical-related
+# def is_medical_query(query):
+#     medical_keywords = [
+#         'doctor', 'medicine', 'health', 'symptom', 'treatment', 'diagnosis', 
+#         'therapy', 'medical', 'hospital', 'clinic', 'pharmacy', 'nurse', 
+#         'emergency', 'surgery', 'physician', 'prescription', 'patient', 
+#         'healthcare', 'pediatrician', 'dermatologist', 'gynecologist', 
+#         'cardiologist', 'neurologist', 'oncologist', 'radiologist', 
+#         'psychiatrist', 'ophthalmologist', 'orthopedic', 'dietitian', 
+#         'allergist', 'chiropractor', 'podiatrist', 'medication', 'delivery', 
+#         'order', 'track', 'shipment', 'customer service', 'pharmacy network', 
+#         'health advice', 'emergency assistance', 'drug recall', 'side effects', 
+#         'health tips', 'medication reminder', 'privacy', 'compliance', 'regulation', 
+#         'data privacy', 'healthcare provider', 'first aid', 'health guide', 
+#         'medicine availability', 'online pharmacy', 'prescription refill', 
+#         'pharmacy support', 'medication information', 'drug interaction', 
+#         'drug safety', 'medical emergency', 'pharmacy services', 'drug delivery', 
+#         'medical delivery', 'patient support', 'order status', 'payment options', 
+#         'drug compatibility', 'pharmaceutical care', 'patient care', 'medicine use', 
+#         'healthcare advice', 'prescription advice', 'medication order', 'prescription order', 
+#         'medication guidance', 'pharmacy assistance', 'healthcare support',
+#         'consultation', 'doctor consultation', 'medical advice', 'health consultation', 
+#         'telemedicine', 'virtual consultation', 'medical specialist', 'doctor appointment', 
+#         'online doctor', 'specialist consultation', 'second opinion', 'health specialist', 
+#         'medical consultation', 'physician consultation', 'GP consultation', 'doctor visit', 
+#         'health check', 'medical opinion', 'medical referral', 'remote consultation',
+#         'lab test', 'blood test', 'urine test', 'diagnostic test', 'pathology', 
+#         'laboratory', 'lab technician', 'test result', 'lab procedure', 
+#         'medical test', 'clinical test', 'biopsy', 'culture test', 'genetic test', 
+#         'microbiology test', 'serology test', 'immunology test', 'radiology test', 
+#         'PCR test', 'MRI scan', 'CT scan', 'X-ray', 'ultrasound'
+#     ]
+#     return any(keyword in query.lower() for keyword in medical_keywords)
+
+# @app.route('/chat')
+# def home():
+#     return render_template('chat.html')
+
+# @app.route('/ask', methods=['POST'])
+# def ask():
+#     user_message = str(request.form['messageText'])
+
+#     # Check if it's a medical query
+#     if not is_medical_query(user_message):
+#         bot_response_text = "I'm sorry, I can only answer medical-related questions. Please ask a question related to medical topics."
+#     else:
+#         # Initialize the Groq API client
+#         llm = ChatGroq(api_key=groq_api_key, model=model_name)
+
+#         # Construct the prompt for the Groq API
+#         prompt = f"""
+#         Respond to the following medical query: {user_message}. Please provide concise yet efficient output. Don't give in markdown format.
+#         """
+
+#         # Send the query to the Groq API
+#         response = llm.invoke(prompt)
+
+#         # Get the response from the Groq API
+#         if response:
+#             bot_response_text = response.content
+#         else:
+#             bot_response_text = "Sorry, I couldn't find a relevant response at this moment."
+
+#     return jsonify({'status': 'OK', 'answer': bot_response_text})
+
+    #return jsonify({'status': 'OK', 'answer': bot_response_text})
+
+
+    def is_medical_query(query):
+        medical_keywords = [
+        'doctor', 'medicine', 'health', 'symptom', 'treatment', 'diagnosis', 
+        'therapy', 'medical', 'hospital', 'clinic', 'pharmacy', 'nurse', 
+        'emergency', 'surgery', 'physician', 'prescription', 'patient', 
+        'healthcare', 'pediatrician', 'dermatologist', 'gynecologist', 
+        'cardiologist', 'neurologist', 'oncologist', 'radiologist', 
+        'psychiatrist', 'ophthalmologist', 'orthopedic', 'dietitian', 
+        'allergist', 'chiropractor', 'podiatrist', 'medication', 'delivery', 
+        'order', 'track', 'shipment', 'customer service', 'pharmacy network', 
+        'health advice', 'emergency assistance', 'drug recall', 'side effects', 
+        'health tips', 'medication reminder', 'privacy', 'compliance', 'regulation', 
+        'data privacy', 'healthcare provider', 'first aid', 'health guide', 
+        'medicine availability', 'online pharmacy', 'prescription refill', 
+        'pharmacy support', 'medication information', 'drug interaction', 
+        'drug safety', 'medical emergency', 'pharmacy services', 'drug delivery', 
+        'medical delivery', 'patient support', 'order status', 'payment options', 
+        'drug compatibility', 'pharmaceutical care', 'patient care', 'medicine use', 
+        'healthcare advice', 'prescription advice', 'medication order', 'prescription order', 
+        'medication guidance', 'pharmacy assistance', 'healthcare support',
+        'consultation', 'doctor consultation', 'medical advice', 'health consultation', 
+        'telemedicine', 'virtual consultation', 'medical specialist', 'doctor appointment', 
+        'online doctor', 'specialist consultation', 'second opinion', 'health specialist', 
+        'medical consultation', 'physician consultation', 'GP consultation', 'doctor visit', 
+        'health check', 'medical opinion', 'medical referral', 'remote consultation',
+        'lab test', 'blood test', 'urine test', 'diagnostic test', 'pathology', 
+        'laboratory', 'lab technician', 'test result', 'lab procedure', 
+        'medical test', 'clinical test', 'biopsy', 'culture test', 'genetic test', 
+        'microbiology test', 'serology test', 'immunology test', 'radiology test', 
+        'PCR test', 'MRI scan', 'CT scan', 'X-ray', 'ultrasound'
+    ]
+    return any(keyword in query.lower() for keyword in medical_keywords)
+
+
+@app.route('/chat')
+def home():
+    return render_template('chat.html')
+
+@app.route('/ask', methods=['POST'])
+def ask():
+    user_message = str(request.form['messageText'])
+
+    # Check if it's a medical query
+    if (0):
+        bot_response_text = "I'm sorry, I can only answer medical-related questions. Please ask a question related to medical topics."
+    else:
+        # Initialize the Groq API client
+        llm = ChatGroq(api_key=groq_api_key, model=model_name)
+
+        # Construct the prompt for the Groq API
+        prompt = f"""
+        Respond to the following medical query: {user_message}. Please provide concise yet efficient output. Don't give in markdown format.
+        Ensure the response is structured as follows:
+        - List the medicine names as headings (e.g., 'Medicine: Name')
+        - Below each medicine, list its uses in a bullet point format.
+        """
+
+        # Send the query to the Groq API
+        response = llm.invoke(prompt)
+
+        # Get the response from the Groq API
+        if response:
+            bot_response_text = structure_medication_response(response.content)
+        else:
+            bot_response_text = "Sorry, I couldn't find a relevant response at this moment."
+
+    return jsonify({'status': 'OK', 'answer': bot_response_text})
+
+
+def structure_medication_response(response_text):
+    """
+    This function will structure the response so that each medicine name is displayed as a heading, followed by its uses as bullet points.
+    """
+    medicine_data = {}
+    lines = response_text.split("\n")
+    
+    current_medicine = None
+    for line in lines:
+        if ':' in line:
+            # The line with a colon is assumed to be the medicine name.
+            medicine_name = line.strip().split(":")[0]
+            medicine_data[medicine_name] = []
+            current_medicine = medicine_name
+        elif current_medicine:
+            # Add subsequent lines under the current medicine as its uses.
+            medicine_data[current_medicine].append(line.strip())
+
+    # Build a structured HTML response.
+    structured_response = ""
+    for medicine, uses in medicine_data.items():
+        structured_response += f"<b>{medicine}</b><br>"  # Medicine name as a heading
+        for use in uses:
+            structured_response += f"- {use}<br>"  # List each use case as a bullet point
+        structured_response += "<br>"
+
+    return structured_response
+
 if __name__ == '__main__':
     app.run(debug=True,port=7001)
