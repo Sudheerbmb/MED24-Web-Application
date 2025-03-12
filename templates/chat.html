@@ -114,12 +114,6 @@
       0% { transform: rotate(0deg); }
       100% { transform: rotate(360deg); }
     }
-
-    #file-upload {
-      margin-top: 20px;
-      font-size: 16px;
-      padding: 10px;
-    }
   </style>
 </head>
 <body>
@@ -130,9 +124,6 @@
       <input type="text" id="user-input" placeholder="Type your medical question here...">
       <button id="send-button">Send</button>
     </div>
-
-    <!-- Prescription upload section -->
-    <input type="file" id="file-upload" accept="image/*" />
   </div>
 
   <script>
@@ -142,8 +133,6 @@
         sendMessage();
       }
     });
-
-    document.getElementById('file-upload').addEventListener('change', uploadPrescription);
 
     function sendMessage() {
       var userInput = document.getElementById('user-input').value;
@@ -174,38 +163,6 @@
         var botMessage = document.createElement('div');
         botMessage.classList.add('message', 'bot-message');
         botMessage.textContent = data.answer;
-        chatBox.appendChild(botMessage);
-        chatBox.scrollTop = chatBox.scrollHeight;
-      });
-    }
-
-    function uploadPrescription(event) {
-      var fileInput = event.target;
-      var formData = new FormData();
-      formData.append("file", fileInput.files[0]);
-
-      // Show loading spinner for prescription processing
-      var chatBox = document.getElementById('chat-box');
-      showLoadingSpinner(chatBox);
-
-      fetch('/upload_prescription', {
-        method: 'POST',
-        body: formData,
-      })
-      .then(response => response.json())
-      .then(data => {
-        removeLoadingSpinner(chatBox);
-        var botMessage = document.createElement('div');
-        botMessage.classList.add('message', 'bot-message');
-        botMessage.textContent = `Medicines from your prescription: ${data.medicines}. Uses: ${data.uses}`;
-        chatBox.appendChild(botMessage);
-        chatBox.scrollTop = chatBox.scrollHeight;
-      })
-      .catch(err => {
-        removeLoadingSpinner(chatBox);
-        var botMessage = document.createElement('div');
-        botMessage.classList.add('message', 'bot-message');
-        botMessage.textContent = "There was an error processing your prescription.";
         chatBox.appendChild(botMessage);
         chatBox.scrollTop = chatBox.scrollHeight;
       });
