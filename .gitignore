@@ -1,0 +1,37 @@
+# Ignore the virtual environment
+med/
+
+# Python bytecode files
+*.pyc
+*.pyo
+__pycache__/
+
+# Environment files
+.env
+*.env
+
+# Flask specific files
+instance/
+*.db
+*.sqlite
+
+# VSCode files
+.vscode/
+
+# PyCharm files
+.idea/
+
+# MacOS specific files
+.DS_Store
+
+# Windows specific files
+Thumbs.db
+
+# Jupyter Notebook files
+.ipynb_checkpoints/
+
+# Log files
+*.log
+
+# Backup files
+*~

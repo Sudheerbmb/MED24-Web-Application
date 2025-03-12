@@ -5,11 +5,15 @@ import re
 import google.generativeai as genai
 # from google.generativeai import get_chat_response
 
-from flask_mail import Mail, Message
+# from flask_mail import Mail, Message
+import markdown
+from langchain_groq import ChatGroq
+
+
 
 from flask import current_app
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
-from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
+# from flask_jwt_extended import JWTManager, create_access_token, jwt_required, get_jwt_identity
 from flask_mysqldb import MySQL
 
 
@@ -21,7 +25,7 @@ app.config['MAIL_USERNAME'] = 'sudheerdata@outlook.com'
 app.config['MAIL_PASSWORD'] = 'Sudheer@123'
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USE_SSL'] = False
-mail = Mail(app)
+# mail = Mail(app)
 
 
 
@@ -99,31 +103,31 @@ app.config['SECRET_KEY'] = 'supersecretkey123'  # Replace with your secret key
 app.config['JWT_SECRET_KEY'] = 'superjwtsecretkey456'
 
 mysql = MySQL(app)
-jwt = JWTManager(app)
+# jwt = JWTManager(app)
 
 
-# @app.route('/')
-# @app.route('/login', methods=['GET', 'POST'])
-# def login():
-#     msg = ''
-#     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
-#         username = request.form['username']
-#         password = request.form['password']
-#         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-#         cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
-#         account = cursor.fetchone()
-#         if account:
-#             session['loggedin'] = True
-#             session['id'] = account['id']
-#             session['username'] = account['username']
-#             session['mail']=account['email']
-#             if username == 'admin':
-#                 return redirect(url_for('admin_home'))
-#             else:
-#                 return redirect(url_for('index'))
-#         else:
-#             msg = 'Incorrect username/password!'
-#     return render_template('login.html', msg=msg)
+@app.route('/')
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    msg = ''
+    if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
+        username = request.form['username']
+        password = request.form['password']
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
+        account = cursor.fetchone()
+        if account:
+            session['loggedin'] = True
+            session['id'] = account['id']
+            session['username'] = account['username']
+            session['mail']=account['email']
+            if username == 'admin':
+                return redirect(url_for('admin_home'))
+            else:
+                return redirect(url_for('index'))
+        else:
+            msg = 'Incorrect username/password!'
+    return render_template('login.html', msg=msg)
 
 
 # @app.route('/')
@@ -150,26 +154,26 @@ jwt = JWTManager(app)
 #     return render_template('login.html', msg=msg)
 
 
-@app.route('/')
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    msg = ''
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
-        username = request.form['username']
-        password = request.form['password']
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
-        account = cursor.fetchone()
-        if account:
-            session['loggedin'] = True
-            session['id'] = account['id']
-            session['username'] = account['username']
-            session['email'] = account['email']
-            access_token = create_access_token(identity={'username': account['username'], 'email': account['email']})
-            return jsonify(access_token=access_token), 200
-        else:
-            msg = 'Incorrect username/password!'
-    return render_template('login.html', msg=msg)
+# @app.route('/')
+# @app.route('/login', methods=['GET', 'POST'])
+# def login():
+#     msg = ''
+#     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
+#         username = request.form['username']
+#         password = request.form['password']
+#         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+#         cursor.execute('SELECT * FROM users WHERE username = %s AND password = %s', (username, password,))
+#         account = cursor.fetchone()
+#         if account:
+#             session['loggedin'] = True
+#             session['id'] = account['id']
+#             session['username'] = account['username']
+#             session['email'] = account['email']
+#             access_token = create_access_token(identity={'username': account['username'], 'email': account['email']})
+#             return jsonify(access_token=access_token), 200
+#         else:
+#             msg = 'Incorrect username/password!'
+#     return render_template('login.html', msg=msg)
 
 
 
@@ -210,18 +214,18 @@ def register():
         msg = 'Please fill out the form!'
     return render_template('register.html', msg=msg)
 
-# @app.route('/index')
-# def index():
-#     if 'loggedin' in session:
-#         return render_template('index.html')
-#     return redirect(url_for('login'))
 @app.route('/index')
-@jwt_required()
 def index():
-    current_user = get_jwt_identity()
     if 'loggedin' in session:
-        return render_template('index.html', user=current_user['username'])
+        return render_template('index.html')
     return redirect(url_for('login'))
+# @app.route('/index')
+# @jwt_required()
+# def index():
+#     current_user = get_jwt_identity()
+#     if 'loggedin' in session:
+#         return render_template('index.html', user=current_user['username'])
+#     return redirect(url_for('login'))
 
 
 
@@ -372,21 +376,59 @@ def order_tracking():
 
 
 
-@app.route('/sendemail', methods=['GET', 'POST'])
-def sendemail():
-    if request.method == 'POST':
-        email = request.form['email']
-        message_body = request.form['message']
-        message = Message('Mail from Medical Delivery System', sender='MED24', recipients=[email])
-        message.body = message_body
-        mail.send(message)
-        return 'Mail sent successfully!'
-    return render_template('sendemail.html')
+# @app.route('/sendemail', methods=['GET', 'POST'])
+# def sendemail():
+#     if request.method == 'POST':
+#         email = request.form['email']
+#         message_body = request.form['message']
+#         message = Message('Mail from Medical Delivery System', sender='MED24', recipients=[email])
+#         message.body = message_body
+#         mail.send(message)
+#         return 'Mail sent successfully!'
+#     return render_template('sendemail.html')
 
 
 
 
 
+# @app.route('/checkout', methods=['POST'])
+# def checkout():
+#     if 'loggedin' in session:
+#         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+#         cursor.execute("""
+#             SELECT medicines.name, cart.quantity, medicines.price,medicines.id 
+#             FROM cart 
+#             JOIN medicines ON cart.medicine_id = medicines.id 
+#             WHERE cart.user_id = %s
+#         """, (session['id'],))
+#         cart_items = cursor.fetchall()
+        
+#         email = session.get('email')
+#         if not email:
+#             cursor.execute('SELECT email FROM users WHERE id = %s', (session['id'],))
+#             user = cursor.fetchone()
+#             email = user['email']
+
+#         message_body = 'Thank you for your order. Here are the details:\n\n'
+#         for item in cart_items:
+#             message_body += f"{item['name']} - Quantity: {item['quantity']} - Price: ₹{item['price'] * item['quantity']}\n"
+#             cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+#             cursor.execute('''
+#             INSERT INTO orders (user_id, medicine_id,quantity) 
+#             values (%s,%s,%s)''',(session['id'],item['id'],item['quantity'],))
+
+        
+#         message = Message('Order Confirmation', sender='sudheerdata@outlook.com', recipients=[email])
+#         message.body = message_body
+#         mail.send(message)
+
+        
+        
+#         cursor.execute('DELETE FROM cart WHERE user_id = %s', (session['id'],))
+#         mysql.connection.commit()
+        
+#         return redirect(url_for('index'))
+#     return redirect(url_for('login'))
 @app.route('/checkout', methods=['POST'])
 def checkout():
     if 'loggedin' in session:
@@ -399,32 +441,19 @@ def checkout():
         """, (session['id'],))
         cart_items = cursor.fetchall()
         
-        email = session.get('email')
-        if not email:
-            cursor.execute('SELECT email FROM users WHERE id = %s', (session['id'],))
-            user = cursor.fetchone()
-            email = user['email']
-
-        message_body = 'Thank you for your order. Here are the details:\n\n'
+        # No email sending logic here
         for item in cart_items:
-            message_body += f"{item['name']} - Quantity: {item['quantity']} - Price: ₹{item['price'] * item['quantity']}\n"
-            cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
             cursor.execute('''
             INSERT INTO orders (user_id, medicine_id,quantity) 
-            values (%s,%s,%s)''',(session['id'],item['id'],item['quantity'],))
+            values (%s,%s,%s)''', (session['id'], item['id'], item['quantity'],))
 
-        
-        message = Message('Order Confirmation', sender='sudheerdata@outlook.com', recipients=[email])
-        message.body = message_body
-        mail.send(message)
-
-        
-        
+        # Clear cart after processing order
         cursor.execute('DELETE FROM cart WHERE user_id = %s', (session['id'],))
         mysql.connection.commit()
         
         return redirect(url_for('index'))
     return redirect(url_for('login'))
+
 
 
 
@@ -975,8 +1004,86 @@ def is_medical_query(query):
 
 
 
+groq_api_key = "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"
+model_name = "llama-3.1-8b-instant"
 
+# Function to fetch ordered medicines from the database based on user_id
+def get_ordered_medicines(user_id):
+    conn = MySQLdb.connect(host=app.config['MYSQL_HOST'], user=app.config['MYSQL_USER'], 
+                            password=app.config['MYSQL_PASSWORD'], db=app.config['MYSQL_DB'])
+    cursor = conn.cursor(MySQLdb.cursors.DictCursor)
+    
+    cursor.execute("""
+        SELECT medicines.name
+        FROM orders
+        JOIN medicines ON orders.medicine_id = medicines.id
+        WHERE orders.user_id = %s
+    """, (user_id,))
+    
+    ordered_medicines = [row['name'] for row in cursor.fetchall()]
+    
+    cursor.close()
+    conn.close()
+    
+    return ordered_medicines
 
+# Function to get similar medicines from the Groq API
+# def get_similar_medicines(ordered_medicines):
+#     llm = ChatGroq(api_key=groq_api_key, model=model_name)
+    
+#     prompt = f"""
+#     Here is a list of medicines ordered by a patient: {', '.join(ordered_medicines)}.
+#     Based on these medicines, suggest other similar medicines that could be recommended for the patient.
+#     Provide a list of recommended medicines and brief reasoning.
+#     Medicines ordered: {', '.join(ordered_medicines)}
+#     """
+    
+#     response = llm.invoke(prompt)
+    
+#     if response:
+#         return response.content
+#     else:
+#         return "Error fetching recommended medicines."
 
+def get_similar_medicines(ordered_medicines):
+    # Initialize Groq LLM API call with the key and model
+    llm = ChatGroq(api_key=groq_api_key, model=model_name)
+
+    # Construct the prompt to ask Groq for similar medicines
+    prompt = f"""
+    Here is a list of medicines ordered by a patient: {', '.join(ordered_medicines)}.
+    Based on these medicines, suggest other similar medicines that could be recommended for the patient.
+    Provide a list of recommended medicines and brief reasoning.
+    Medicines ordered: {', '.join(ordered_medicines)}
+    """
+
+    # Send the prompt to the LLM
+    response = llm.invoke(prompt)
+
+    # Check for a valid response and return it, otherwise return an error message
+    if response:
+        # Convert markdown to HTML
+        return markdown.markdown(response.content)  # Converts Markdown content to HTML
+    else:
+        return "Error fetching recommended medicines."
+# Route to recommend medicines based on user orders
+@app.route('/recommend_medicines')
+def recommend_medicines():
+    if 'loggedin' in session:
+        user_id = session['id']  # Get the user ID from the session
+        
+        # Fetch the ordered medicines from the database
+        ordered_medicines = get_ordered_medicines(user_id)
+        
+        if not ordered_medicines:
+            flash("No previous orders found for this user.", "warning")
+            return redirect(url_for('index'))
+        
+        # Fetch similar medicines using Groq API
+        similar_medicines = get_similar_medicines(ordered_medicines)
+        
+        return render_template('recommendations.html', medicines=similar_medicines)
+    
+    return redirect(url_for('login'))
 if __name__ == '__main__':
     app.run(debug=True,port=7001)

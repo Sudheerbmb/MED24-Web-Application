@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recommended Medicines</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Recommended Medicines Based on Your Previous Orders</h1>
+        
+        <!-- Displaying any Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alert alert-warning" role="alert">
+                    {% for category, message in messages %}
+                        <strong>{{ message }}</strong>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <!-- Check if medicines are available -->
+        {% if medicines %}
+            <div class="card">
+                <div class="card-header">
+                    Similar Medicines Recommendations
+                </div>
+                <div class="card-body">
+                    <!-- Displaying recommended medicines in HTML format -->
+                    <div class="recommendations">
+                        {{ medicines|safe }}
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="alert alert-info" role="alert">
+                No similar medicines were found. Please check your previous orders.
+            </div>
+        {% endif %}
+        
+        <div class="mt-4 text-center">
+            <a href="{{ url_for('index') }}" class="btn btn-primary">Go Back to Home</a>
+        </div>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
