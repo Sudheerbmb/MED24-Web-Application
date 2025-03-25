@@ -44,8 +44,7 @@ model1.fit(X, y)
 
 
 
-# API_KEY = "AIzaSyAoNuN2kub93lFwXp8sCXmlWbhp8jLYszc"
-# #'AIzaSyCCrYnLhDIgToWeG4u_nPpQcB9uNJMze0U'
+
 # genai.configure(api_key=API_KEY)
 
 # model = genai.GenerativeModel('gemini-pro')
@@ -1000,7 +999,7 @@ def past_lab_bookings():
 
 
 
-groq_api_key = "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"
+groq_api_key = ""
 model_name = "llama-3.1-8b-instant"
 
 # Function to fetch ordered medicines from the database based on user_id
